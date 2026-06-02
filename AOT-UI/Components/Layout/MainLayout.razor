@@ -1,6 +1,18 @@
 ﻿@inherits LayoutComponentBase
 
-@Body
+<div class="layout">
+    <nav class="sidebar">
+        <h3>AOT-AI</h3>
+        <NavLink href="/" Match="NavLinkMatch.All">Dashboard</NavLink>
+        <NavLink href="/workflows">Workflows</NavLink>
+        <NavLink href="/approvals">Approvals</NavLink>
+        <NavLink href="/monitoring">Monitoring</NavLink>
+    </nav>
+
+    <main class="content">
+        @Body
+    </main>
+</div>
 
 <div id="blazor-error-ui" data-nosnippet>
     An unhandled error has occurred.

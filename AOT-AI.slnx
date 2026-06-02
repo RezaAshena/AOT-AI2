@@ -1,3 +1,15 @@
 <Solution>
-  <Project Path="AOT-UI/AOT-UI.csproj" />
+  <Folder Name="/src/">
+    <Project Path="AOT-UI/AOT-UI.csproj" />
+    <Project Path="AOT.Application/AOT.Application.csproj" />
+    <Project Path="AOT.Domain/AOT.Domain.csproj" />
+    <Project Path="AOT.Infrastructure/AOT.Infrastructure.csproj" />
+    <Project Path="AOT.Agents/AOT.Agents.csproj" />
+    <Project Path="AOT.Workflows/AOT.Workflows.csproj" />
+    <Project Path="AOT.Shared/AOT.Shared.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="AOT.Tests.Unit/AOT.Tests.Unit.csproj" />
+    <Project Path="AOT.Tests.Integration/AOT.Tests.Integration.csproj" />
+  </Folder>
 </Solution>

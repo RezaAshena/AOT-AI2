@@ -1,0 +1,107 @@
+@page "/approvals"
+@inject IMediator Mediator
+
+<PageTitle>Approvals</PageTitle>
+
+<h1>Approval Inbox</h1>
+
+@if (_isLoading)
+{
+    <p>Loading pending approvals...</p>
+}
+else if (!string.IsNullOrWhiteSpace(_error))
+{
+    <p class="text-danger">@_error</p>
+}
+else if (_approvals.Count == 0)
+{
+    <p>No pending approvals.</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Requester</th>
+                <th>Expires</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var item in _approvals)
+        {
+            <tr>
+                <td>@item.Title</td>
+                <td>@item.RequesterId</td>
+                <td>@item.ExpiresAt.ToLocalTime().ToString("g")</td>
+                <td>
+                    <button class="btn btn-success btn-sm me-2" @onclick="() => ApproveAsync(item.Id)">Approve</button>
+                    <button class="btn btn-danger btn-sm" @onclick="() => RejectAsync(item.Id)">Reject</button>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
+
+@if (!string.IsNullOrWhiteSpace(_actionMessage))
+{
+    <p>@_actionMessage</p>
+}
+
+@code {
+    private bool _isLoading = true;
+    private string? _error;
+    private string? _actionMessage;
+    private List<AOT.Domain.Aggregates.ApprovalRequest> _approvals = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadPendingAsync();
+    }
+
+    private async Task LoadPendingAsync()
+    {
+        _isLoading = true;
+        _error = null;
+
+        var result = await Mediator.Send(new GetPendingApprovalsQuery());
+        if (result.IsSuccess && result.Value is not null)
+        {
+            _approvals = result.Value.ToList();
+        }
+        else
+        {
+            _error = result.Error;
+        }
+
+        _isLoading = false;
+    }
+
+    private async Task ApproveAsync(Guid id)
+    {
+        var result = await Mediator.Send(new ApproveRequestCommand
+        {
+            ApprovalRequestId = id,
+            ApproverId = "ui-approver",
+            Comments = "Approved from Blazor inbox"
+        });
+
+        _actionMessage = result.IsSuccess ? "Approval granted." : result.Error;
+        await LoadPendingAsync();
+    }
+
+    private async Task RejectAsync(Guid id)
+    {
+        var result = await Mediator.Send(new RejectRequestCommand
+        {
+            ApprovalRequestId = id,
+            ApproverId = "ui-approver",
+            Comments = "Rejected from Blazor inbox"
+        });
+
+        _actionMessage = result.IsSuccess ? "Approval rejected." : result.Error;
+        await LoadPendingAsync();
+    }
+}

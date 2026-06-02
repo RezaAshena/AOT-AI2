@@ -1,7 +1,47 @@
 ﻿@page "/"
+@inject IMediator Mediator
+@inject DashboardState DashboardState
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Dashboard</PageTitle>
 
-<h1>Hello, world!</h1>
+<h1>Enterprise Multi-Agent Dashboard</h1>
 
-Welcome to your new app.
+<p>Last refreshed: @DashboardState.LastRefreshedUtc.ToLocalTime().ToString("u")</p>
+
+<button class="btn btn-primary" @onclick="RefreshAsync">Refresh Metrics</button>
+
+<div class="mt-3">
+    <p><strong>Workflows:</strong> @_workflowCount</p>
+    <p><strong>Pending Approvals:</strong> @_pendingApprovals</p>
+    <p><strong>Completed Workflows:</strong> @_completedWorkflows</p>
+</div>
+
+@code {
+    private int _workflowCount;
+    private int _pendingApprovals;
+    private int _completedWorkflows;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await RefreshAsync();
+    }
+
+    private async Task RefreshAsync()
+    {
+        var workflows = await Mediator.Send(new GetAllWorkflowsQuery());
+        var approvals = await Mediator.Send(new GetPendingApprovalsQuery());
+
+        if (workflows.IsSuccess && workflows.Value is not null)
+        {
+            var list = workflows.Value.ToList();
+            _workflowCount = list.Count;
+            _completedWorkflows = list.Count(w => w.Status == WorkflowStatus.Completed);
+        }
+
+        _pendingApprovals = approvals.IsSuccess && approvals.Value is not null
+            ? approvals.Value.Count()
+            : 0;
+
+        DashboardState.MarkRefreshed();
+    }
+}

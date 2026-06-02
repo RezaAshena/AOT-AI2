@@ -1,0 +1,33 @@
+@page "/monitoring"
+@inject IMediator Mediator
+
+<PageTitle>Monitoring</PageTitle>
+
+<h1>Operational Monitoring</h1>
+
+<ul>
+    <li><strong>Last dashboard refresh:</strong> @DashboardState.LastRefreshedUtc.ToLocalTime().ToString("u")</li>
+    <li><strong>Total workflows:</strong> @_workflowCount</li>
+    <li><strong>Failed workflows:</strong> @_failedCount</li>
+    <li><strong>Running workflows:</strong> @_runningCount</li>
+</ul>
+
+@code {
+    [Inject] public DashboardState DashboardState { get; set; } = default!;
+
+    private int _workflowCount;
+    private int _failedCount;
+    private int _runningCount;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await Mediator.Send(new GetAllWorkflowsQuery());
+        if (result.IsSuccess && result.Value is not null)
+        {
+            var items = result.Value.ToList();
+            _workflowCount = items.Count;
+            _failedCount = items.Count(w => w.Status == WorkflowStatus.Failed);
+            _runningCount = items.Count(w => w.Status == WorkflowStatus.Running);
+        }
+    }
+}
